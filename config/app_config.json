@@ -1,0 +1,30 @@
+{
+    "offers": [
+        {
+            "code": "OFR001",
+            "discount": 0.10,
+            "minDistance": 0,
+            "maxDistance": 200,
+            "minWeight": 70,
+            "maxWeight": 200
+        },
+        {
+            "code": "OFR002",
+            "discount": 0.07,
+            "minDistance": 50,
+            "maxDistance": 150,
+            "minWeight": 100,
+            "maxWeight": 250
+        },
+        {
+            "code": "OFR003",
+            "discount": 0.05,
+            "minDistance": 50,
+            "maxDistance": 250,
+            "minWeight": 10,
+            "maxWeight": 150
+        }
+    ],
+    "weightCostPerKG": 10,
+    "distanceCostPerKM": 5
+}
