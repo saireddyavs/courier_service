@@ -85,70 +85,104 @@ func getShipmentWithLessDistanceAmongPossibleSubsets(possibleShipmentList [][]in
 }
 
 func calculateDeliveryTime(packages []Package, numVehicles, maxSpeed, maxWeight int, baseDeliveryCost int) {
-	vehicleAvailabilityArray := make([]float64, numVehicles)
-	vehicleList := make([]Vehicle, numVehicles)
-
-	for i := range vehicleAvailabilityArray {
-		vehicleAvailabilityArray[i] = 0
-		vehicleList[i] = Vehicle{ID: i + 1}
-	}
-
-	var newUpdatedPackageList []Package
-	for _, pkg := range packages {
-		newUpdatedPackageList = append(newUpdatedPackageList, pkg)
-	}
+	vehicleAvailabilityArray, vehicleList := initializeVehicles(numVehicles)
+	newUpdatedPackageList := copyPackages(packages)
 
 	for len(newUpdatedPackageList) > 0 {
 		possibleShipmentList := getShipmentsSubSetsWhichFallsUnderMaxCarriable(newUpdatedPackageList, maxWeight)
 		nextDelivery := getShipmentWithLessDistanceAmongPossibleSubsets(possibleShipmentList, newUpdatedPackageList)
+		processNextDelivery(nextDelivery, newUpdatedPackageList, vehicleAvailabilityArray, vehicleList, maxSpeed)
+		newUpdatedPackageList = filterRemainingPackages(newUpdatedPackageList)
+	}
+}
 
-		nextAvailableAt := math.MaxFloat64
-		for _, availability := range vehicleAvailabilityArray {
-			if availability < nextAvailableAt {
-				nextAvailableAt = availability
-			}
+func initializeVehicles(numVehicles int) ([]float64, []Vehicle) {
+	vehicleAvailabilityArray := make([]float64, numVehicles)
+	vehicleList := make([]Vehicle, numVehicles)
+	for i := range vehicleAvailabilityArray {
+		vehicleAvailabilityArray[i] = 0
+		vehicleList[i] = Vehicle{ID: i + 1}
+	}
+	return vehicleAvailabilityArray, vehicleList
+}
+
+func copyPackages(packages []Package) []Package {
+	var newUpdatedPackageList []Package
+	for _, pkg := range packages {
+		newUpdatedPackageList = append(newUpdatedPackageList, pkg)
+	}
+	return newUpdatedPackageList
+}
+
+func getEarliestAvailableVehicle(vehicleAvailabilityArray []float64) float64 {
+	nextAvailableAt := math.MaxFloat64
+	for _, availability := range vehicleAvailabilityArray {
+		if availability < nextAvailableAt {
+			nextAvailableAt = availability
 		}
+	}
+	return nextAvailableAt
+}
 
-		durationForSingleTrip := 0.0
-		var vehicleID int
-
-		for _, idx := range nextDelivery {
-			currentPackage := &newUpdatedPackageList[idx]
-			deliveryTime := float64(currentPackage.Distance) / float64(maxSpeed)
-			currentPackage.DeliveryTime = nextAvailableAt + deliveryTime
-			durationForSingleTrip = math.Max(deliveryTime, durationForSingleTrip)
-
-			for i := range vehicleList {
-				if vehicleAvailabilityArray[i] == nextAvailableAt {
-					vehicleList[i].AssignedPackages = append(vehicleList[i].AssignedPackages, currentPackage.ID)
-					vehicleID = i + 1
-					break
-				}
-			}
-
-			fmt.Printf("Package: %s\n", currentPackage.ID)
-			fmt.Printf("  Vehicle: %d\n", vehicleID)
-			fmt.Printf("  Discount: %.2f\n", currentPackage.Discount)
-			fmt.Printf("  Total Cost: %.2f\n", currentPackage.TotalCost)
-			fmt.Printf("  Delivery Time: %.2f hours\n", currentPackage.DeliveryTime)
-			fmt.Println()
-		}
-
-		for i, availability := range vehicleAvailabilityArray {
-			if availability == nextAvailableAt {
-				vehicleAvailabilityArray[i] = nextAvailableAt + 2*durationForSingleTrip
+func assignPackagesToVehicle(vehicleList []Vehicle, vehicleAvailabilityArray []float64, nextAvailableAt float64, durationForSingleTrip float64, nextDelivery []int, newUpdatedPackageList []Package, maxSpeed int) {
+	var vehicleID int
+	for _, idx := range nextDelivery {
+		currentPackage := &newUpdatedPackageList[idx]
+		currentPackage.DeliveryTime = nextAvailableAt + (float64(currentPackage.Distance) / float64(maxSpeed))
+		for i := range vehicleList {
+			if vehicleAvailabilityArray[i] == nextAvailableAt {
+				vehicleList[i].AssignedPackages = append(vehicleList[i].AssignedPackages, currentPackage.ID)
+				vehicleID = i + 1
 				break
 			}
 		}
-
-		var remainingPackages []Package
-		for _, pkg := range newUpdatedPackageList {
-			if pkg.DeliveryTime == 0 {
-				remainingPackages = append(remainingPackages, pkg)
-			}
-		}
-		newUpdatedPackageList = remainingPackages
+		printPackageDetails(currentPackage, vehicleID)
 	}
+	updateVehicleAvailability(vehicleAvailabilityArray, nextAvailableAt, durationForSingleTrip)
+}
+
+func printPackageDetails(pkg *Package, vehicleID int) {
+	fmt.Printf("Package: %s\n", pkg.ID)
+	fmt.Printf("  Vehicle: %d\n", vehicleID)
+	fmt.Printf("  Discount: %.2f\n", pkg.Discount)
+	fmt.Printf("  Total Cost: %.2f\n", pkg.TotalCost)
+	fmt.Printf("  Delivery Time: %.2f hours\n", pkg.DeliveryTime)
+	fmt.Println()
+}
+
+func updateVehicleAvailability(vehicleAvailabilityArray []float64, nextAvailableAt float64, durationForSingleTrip float64) {
+	for i, availability := range vehicleAvailabilityArray {
+		if availability == nextAvailableAt {
+			vehicleAvailabilityArray[i] = nextAvailableAt + 2*durationForSingleTrip
+			break
+		}
+	}
+}
+
+func filterRemainingPackages(newUpdatedPackageList []Package) []Package {
+	var remainingPackages []Package
+	for _, pkg := range newUpdatedPackageList {
+		if pkg.DeliveryTime == 0 {
+			remainingPackages = append(remainingPackages, pkg)
+		}
+	}
+	return remainingPackages
+}
+
+func processNextDelivery(nextDelivery []int, newUpdatedPackageList []Package, vehicleAvailabilityArray []float64, vehicleList []Vehicle, maxSpeed int) {
+	nextAvailableAt := getEarliestAvailableVehicle(vehicleAvailabilityArray)
+	durationForSingleTrip := calculateDurationForSingleTrip(nextDelivery, newUpdatedPackageList, maxSpeed)
+	assignPackagesToVehicle(vehicleList, vehicleAvailabilityArray, nextAvailableAt, durationForSingleTrip, nextDelivery, newUpdatedPackageList, maxSpeed)
+}
+
+func calculateDurationForSingleTrip(nextDelivery []int, newUpdatedPackageList []Package, maxSpeed int) float64 {
+	durationForSingleTrip := 0.0
+	for _, idx := range nextDelivery {
+		currentPackage := &newUpdatedPackageList[idx]
+		deliveryTime := float64(currentPackage.Distance) / float64(maxSpeed)
+		durationForSingleTrip = math.Max(deliveryTime, durationForSingleTrip)
+	}
+	return durationForSingleTrip
 }
 
 var calculateTimeAndCostCmd = &cobra.Command{
