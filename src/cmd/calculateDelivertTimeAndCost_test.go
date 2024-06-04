@@ -1,11 +1,35 @@
 package cmd
 
 import (
+	"bytes"
+	"fmt"
+	"os"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("CalculateTimeAndCostCmd", func() {
+	var (
+		stdout *os.File
+		r, w   *os.File
+		output bytes.Buffer
+	)
+
+	BeforeEach(func() {
+		// Save the original stdout
+		stdout = os.Stdout
+
+		// Create a pipe to capture stdout
+		r, w, _ = os.Pipe()
+		os.Stdout = w
+	})
+
+	AfterEach(func() {
+		// Close the writer and restore original stdout
+		w.Close()
+		os.Stdout = stdout
+	})
 	Describe("RunE", func() {
 		Context("with valid input", func() {
 			It("should calculate delivery time and cost correctly", func() {
@@ -14,7 +38,20 @@ var _ = Describe("CalculateTimeAndCostCmd", func() {
 
 				err := calculateTimeAndCostCmd.RunE(nil, args)
 
+				w.Close()
+				output.ReadFrom(r)
+
+				Expect(output.String()).To(ContainSubstring("Package: PKG3"))
+				Expect(output.String()).To(ContainSubstring("Delivery Time: 1.43 hours"))
+
+				Expect(output.String()).To(ContainSubstring("Package: PKG1"))
+				Expect(output.String()).To(ContainSubstring("Delivery Time: 0.43 hours"))
+
+				Expect(output.String()).To(ContainSubstring("Package: PKG2"))
+				Expect(output.String()).To(ContainSubstring("Delivery Time: 1.79 hours"))
+
 				Expect(err).ToNot(HaveOccurred())
+
 			})
 
 			It("should calculate delivery time and cost correctly when weights are same for two pacakges", func() {
@@ -22,6 +59,20 @@ var _ = Describe("CalculateTimeAndCostCmd", func() {
 				args := []string{"100", "3", "PKG1 50 30 OFR001", "PKG2 50 125 OFFR0008", "PKG3 175 100 OFFR003", "2", "70", "200"}
 
 				err := calculateTimeAndCostCmd.RunE(nil, args)
+
+				w.Close()
+				output.ReadFrom(r)
+
+				fmt.Println(output.String())
+
+				Expect(output.String()).To(ContainSubstring("Package: PKG3"))
+				Expect(output.String()).To(ContainSubstring("Delivery Time: 1.43 hours"))
+
+				Expect(output.String()).To(ContainSubstring("Package: PKG1"))
+				Expect(output.String()).To(ContainSubstring("Delivery Time: 0.43 hours"))
+
+				Expect(output.String()).To(ContainSubstring("Package: PKG2"))
+				Expect(output.String()).To(ContainSubstring("Delivery Time: 1.79 hours"))
 
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -31,6 +82,20 @@ var _ = Describe("CalculateTimeAndCostCmd", func() {
 				args := []string{"100", "3", "PKG1 50 30 OFR001", "PKG2 50 125 OFFR0008", "PKG3 125 100 OFFR003", "2", "70", "200"}
 
 				err := calculateTimeAndCostCmd.RunE(nil, args)
+
+				w.Close()
+				output.ReadFrom(r)
+
+				fmt.Println(output.String())
+
+				Expect(output.String()).To(ContainSubstring("Package: PKG3"))
+				Expect(output.String()).To(ContainSubstring("Delivery Time: 1.43 hours"))
+
+				Expect(output.String()).To(ContainSubstring("Package: PKG1"))
+				Expect(output.String()).To(ContainSubstring("Delivery Time: 0.43 hours"))
+
+				Expect(output.String()).To(ContainSubstring("Package: PKG2"))
+				Expect(output.String()).To(ContainSubstring("Delivery Time: 1.79 hours"))
 
 				Expect(err).ToNot(HaveOccurred())
 			})
