@@ -110,36 +110,36 @@ This command calculates the delivery cost and estimated delivery time for packag
 The command will output the delivery cost, discount, total cost, delivery time, and vehicle availability time for each package.
 
 ```
-Package: PKG3
-  Vehicle: 1
-  Discount: 0.00
-  Total Cost: 2350.00
-  Delivery Time: 1.43 hours
-  Current Vehicle Available for next delivery after : 2.86 hours
-Package: PKG5
-  Vehicle: 2
-  Discount: 0.00
-  Total Cost: 2125.00
-  Delivery Time: 1.36 hours
-  Current Vehicle Available for next delivery after : 2.71 hours
-Package: PKG1
-  Vehicle: 2
-  Discount: 235.00
-  Total Cost: 2115.00
-  Delivery Time: 4.86 hours
-  Current Vehicle Available for next delivery after : 7.00 hours
-Package: PKG4
-  Vehicle: 1
-  Discount: 105.00
-  Total Cost: 1395.00
-  Delivery Time: 3.71 hours
-  Current Vehicle Available for next delivery after : 6.43 hours
+
 Package: PKG2
   Vehicle: 1
   Discount: 0.00
   Total Cost: 1475.00
-  Delivery Time: 4.64 hours
-  Current Vehicle Available for next delivery after : 6.43 hours
+  Delivery Time: 1.79 hours
+
+Package: PKG4
+  Vehicle: 1
+  Discount: 0.00
+  Total Cost: 1500.00
+  Delivery Time: 0.86 hours
+
+Package: PKG3
+  Vehicle: 2
+  Discount: 0.00
+  Total Cost: 2350.00
+  Delivery Time: 1.43 hours
+
+Package: PKG5
+  Vehicle: 2
+  Discount: 0.00
+  Total Cost: 2125.00
+  Delivery Time: 4.21 hours
+
+Package: PKG1
+  Vehicle: 1
+  Discount: 0.00
+  Total Cost: 750.00
+  Delivery Time: 4.00 hours
 ```
 
 ## Configuration
