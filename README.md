@@ -84,6 +84,16 @@ Total Delivery Cost: 665.00
 
 This command calculates the delivery cost and estimated delivery time for packages.
 
+| Case                                 | Description                                                                                               |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Success - All input values are valid | The application successfully calculates the delivery cost, time, and vehicle assignment for the packages. |
+| Error - Invalid base delivery cost   | The provided base delivery cost is not a valid integer.                                                   |
+| Error - Invalid number of packages   | The provided number of packages is not a valid integer.                                                   |
+| Error - Invalid package details      | One or more package details are not provided in the correct format.                                       |
+| Error - Invalid number of vehicles   | The provided number of vehicles is not a valid integer.                                                   |
+| Error - Invalid max vehicle speed    | The provided maximum vehicle speed is not a valid integer.                                                |
+| Error - Invalid vehicle capacity     | The provided maximum carriable weight for vehicles is not a valid integer.                                |
+
 #### Usage
 
 ```
