@@ -190,7 +190,7 @@ var calculateTimeAndCostCmd = &cobra.Command{
 	Short: "Calculate delivery cost and time of packages",
 	Long:  `This command calculates the delivery cost and time of packages based on weight, distance, and offer codes.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 4 {
+		if len(args) < 5 {
 			return fmt.Errorf("Usage: courier_service calculateTimeAndCost <baseDeliveryCost> <numberOfPackages> <packages> <number_of_vehicles> <max_speed> <max_carriable_weight>")
 		}
 
@@ -204,38 +204,9 @@ var calculateTimeAndCostCmd = &cobra.Command{
 			return fmt.Errorf("Invalid number of packages")
 		}
 
-		var packages []Package
-
-		for i := 0; i < numPackages; i++ {
-			packageDetails := strings.Fields(args[2+i])
-			if len(packageDetails) != 4 {
-				return fmt.Errorf("Invalid package details for package %d", i+1)
-			}
-
-			weight, err := strconv.Atoi(packageDetails[1])
-			if err != nil {
-				return fmt.Errorf("Invalid weight for package %d", i+1)
-			}
-
-			distance, err := strconv.Atoi(packageDetails[2])
-			if err != nil {
-				return fmt.Errorf("Invalid distance for package %d", i+1)
-			}
-
-			offers := config.GetOffers()
-
-			totalCost, _, _, discount, _ := calculateDeliveryCost(baseDeliveryCost, weight, distance, packageDetails[3], offers)
-			finalCost := totalCost - discount
-
-			packages = append(packages, Package{
-				ID:        packageDetails[0],
-				Weight:    weight,
-				Distance:  distance,
-				OfferCode: packageDetails[3],
-				TotalCost: totalCost,
-				Discount:  discount,
-				FinalCost: finalCost,
-			})
+		packages, err := parsePackages(args[2:numPackages+2], baseDeliveryCost)
+		if err != nil {
+			return err
 		}
 
 		numVehicles, err := strconv.Atoi(args[2+numPackages])
@@ -248,15 +219,52 @@ var calculateTimeAndCostCmd = &cobra.Command{
 			return fmt.Errorf("Invalid max vehicle speed")
 		}
 
-		maxWeight, err := strconv.Atoi(args[4+numPackages])
+		maxLoadCapacity, err := strconv.Atoi(args[4+numPackages])
 		if err != nil {
 			return fmt.Errorf("Invalid vehicle capacity")
 		}
 
-		calculateDeliveryTime(packages, numVehicles, maxSpeed, maxWeight, baseDeliveryCost)
+		calculateDeliveryTime(packages, numVehicles, maxSpeed, maxLoadCapacity, baseDeliveryCost)
 
 		return nil
 	},
+}
+
+func parsePackages(packageArgs []string, baseDeliveryCost int) ([]Package, error) {
+	var packages []Package
+	offers := config.GetOffers()
+
+	for i, arg := range packageArgs {
+		packageDetails := strings.Fields(arg)
+		if len(packageDetails) != 4 {
+			return nil, fmt.Errorf("Invalid package details for package %d", i+1)
+		}
+
+		weight, err := strconv.Atoi(packageDetails[1])
+		if err != nil {
+			return nil, fmt.Errorf("Invalid weight for package %d", i+1)
+		}
+
+		distance, err := strconv.Atoi(packageDetails[2])
+		if err != nil {
+			return nil, fmt.Errorf("Invalid distance for package %d", i+1)
+		}
+
+		totalCost, _, _, discount, _ := calculateDeliveryCost(baseDeliveryCost, weight, distance, packageDetails[3], offers)
+		finalCost := totalCost - discount
+
+		packages = append(packages, Package{
+			ID:        packageDetails[0],
+			Weight:    weight,
+			Distance:  distance,
+			OfferCode: packageDetails[3],
+			TotalCost: totalCost,
+			Discount:  discount,
+			FinalCost: finalCost,
+		})
+	}
+
+	return packages, nil
 }
 
 func init() {
