@@ -25,6 +25,15 @@ var _ = Describe("CalculateTimeAndCostCmd", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 			})
+
+			It("should calculate delivery time and cost correctly when weights are same for two packages and has multiple subsets selected then it should select based on distance", func() {
+
+				args := []string{"100", "3", "PKG1 50 30 OFR001", "PKG2 50 125 OFFR0008", "PKG3 125 100 OFFR003", "2", "70", "200"}
+
+				err := calculateTimeAndCostCmd.RunE(nil, args)
+
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 
 		Context("with invalid input", func() {
@@ -36,7 +45,7 @@ var _ = Describe("CalculateTimeAndCostCmd", func() {
 				err := calculateTimeAndCostCmd.RunE(nil, args)
 
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Insufficient package information provided"))
+				Expect(err.Error()).To(Equal("Invalid package details for package 3"))
 			})
 
 			It("should return an error for invalid base delivery cost", func() {
@@ -127,7 +136,7 @@ var _ = Describe("CalculateTimeAndCostCmd", func() {
 				err := calculateTimeAndCostCmd.RunE(nil, args)
 
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Invalid vehicle speed"))
+				Expect(err.Error()).To(Equal("Invalid max vehicle speed"))
 			})
 
 			It("should return an error when invalid vehicle capacity", func() {
